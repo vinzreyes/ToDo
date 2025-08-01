@@ -13,7 +13,7 @@ This app allows users to create, update, complete, and delete tasks, and is desi
 ASP.NET Core MVC, Entity Framework Core, SQL Server LocalDB, Razor Views, Visual Studio  
 ## Getting Started  
 Prerequisites: .NET 6 or 7 SDK, Visual Studio 2022+ or VS Code, SQL Server LocalDB (comes with Visual Studio)  
-1. Clone the repo: `git clone https://github.com/yourusername/todo-app.git`  
+1. Clone the repo: `git clone https://github.com/vinzreyez/todo-app.git`  
 2. Navigate to the folder: `cd todo-app`  
 3. Apply migrations: `dotnet ef database update`  
 4. Run the app: `dotnet run`  
