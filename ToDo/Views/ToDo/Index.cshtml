@@ -1,0 +1,341 @@
+﻿@using ToDo.Models
+@model ToDoIndexViewModel
+
+@{
+    ViewData["Title"] = "To Do List";
+
+    var inProgress = Model.ToDoList
+        .Where(x => !x.IsDone)
+        .OrderByDescending(x => x.Priority)
+        .ToList();
+
+    var done = Model.ToDoList
+        .Where(x => x.IsDone)
+        .OrderByDescending(x => x.Priority)
+        .ToList();
+
+    var autoReminders = Model.ToDoList
+.Where(x => !x.IsDone && x.Date <= DateTime.Now.AddDays(1))
+.OrderBy(x => x.Date)
+.ToList();
+
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Your Tasks</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="bi bi-plus-circle me-1"></i> Create
+    </button>
+</div>
+
+
+@if (!Model.ToDoList.Any())
+{
+    <div class="text-center my-5">
+        <i class="bi bi-clipboard-x fs-1 text-muted mb-3"></i>
+        <p class="fs-5 text-muted">You don’t have any tasks yet.</p>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="bi bi-plus-circle me-1"></i> Create Your First Task
+        </button>
+    </div>
+}
+else
+{ <div class="row">
+        <!-- Side Reminder Panel -->
+        <div class="col-lg-3 border-end pe-3">
+
+            @if (autoReminders.Any())
+            {
+                <div class="card border-warning shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark fw-bold">
+                        <i class="bi bi-bell-fill me-2"></i> Upcoming Tasks
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in autoReminders)
+                        {
+                            var label = item.Date < DateTime.Now
+                            ? "Overdue"
+                            : item.Date.Date == DateTime.Now.Date ? "Today"
+                            : "Tomorrow";
+                            <li class="list-group-item small">
+                                <strong>@item.Title</strong><br />
+                                <span class="text-muted">@label – @item.Date.ToString("MMM dd, HH:mm")</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+        <div class="col-lg-9">
+    <!-- IN PROGRESS SECTION -->
+            <div class="mt-4 mb-3">
+                <div class="d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-hourglass-split text-primary fs-4"></i>
+                    <h4 class="text-primary fw-bold mb-0">In Progress (@inProgress.Count)</h4>
+                </div>
+            </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var item in inProgress)
+        {
+            <div class="col">
+                <div class="card shadow h-100 rounded-4 border-0 position-relative">
+                    <div class="card-header d-flex justify-content-between align-items-center px-3 py-2 rounded-top-3
+                                @(item.Priority == PriorityLevel.High ? "priority-high" : item.Priority == PriorityLevel.Medium ? "priority-medium" : "priority-low")">
+                        <span class="fw-semibold">@item.Priority.ToString() Priority</span>
+                        <span class="badge rounded-pill @(item.IsDone ? "bg-success" : "bg-dark")">
+                            @(item.IsDone ? "Done" : "Pending")
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold">@item.Title</h5>
+                        <p class="card-text text-muted mb-0">@item.Details</p>
+
+                        @if (item.Date <= DateTime.Now.AddDays(1))
+                        {
+                            var label = item.Date < DateTime.Now
+                            ? "Overdue"
+                            : item.Date.Date == DateTime.Now.Date ? "Due Today"
+                            : "Due Tomorrow";
+
+                            <div class="mt-2 small text-warning">
+                                <i class="bi bi-bell-fill me-1"></i> @label: @item.Date.ToString("yyyy-MM-dd HH:mm")
+                            </div>
+                        }
+
+
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 text-muted small d-flex align-items-center">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        @item.Date.ToString("yyyy-MM-dd HH:mm")
+                    </div>
+
+                    <div class="dropdown position-absolute top-0 end-0 mt-2 me-2">
+                        <a href="#" class="text-muted" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editModal-@item.Id">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </li>
+                            <li>
+                                <form asp-action="Delete" asp-route-id="@item.Id" class="m-0">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Modal -->
+            <div class="modal fade" id="editModal-@item.Id" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form asp-action="Edit" method="post">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Task</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="Id" value="@item.Id" />
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input class="form-control" type="text" name="Title" value="@item.Title" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Details</label>
+                                    <input class="form-control" type="text" name="Details" value="@item.Details" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Date</label>
+                                    <input class="form-control" type="datetime-local" name="Date" value='@item.Date.ToString("yyyy-MM-ddTHH:mm")' />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Priority</label>
+                                    <select name="Priority" class="form-select">
+                                        <option value="0" selected="@(item.Priority == PriorityLevel.Low)">Low</option>
+                                        <option value="1" selected="@(item.Priority == PriorityLevel.Medium)">Medium</option>
+                                        <option value="2" selected="@(item.Priority == PriorityLevel.High)">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="IsDone" value="true" @(item.IsDone ? "checked" : "") />
+                                    <label class="form-check-label">Completed</label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- COMPLETED SECTION -->
+            <div class="mt-5 mb-3">
+                <div class="d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                    <h4 class="text-success fw-bold mb-0">Completed (@done.Count)</h4>
+                </div>
+            </div>
+
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var item in done)
+        {
+            <div class="col">
+                <div class="card shadow-sm h-100 rounded-4 border-0 position-relative" style="background-color: #f8f9fa;">
+                    <div class="card-header d-flex justify-content-between align-items-center px-3 py-2 rounded-top-3
+                                @(item.Priority == PriorityLevel.High ? "priority-high" : item.Priority == PriorityLevel.Medium ? "priority-medium" : "priority-low")">
+                        <span class="fw-semibold">@item.Priority.ToString() Priority</span>
+                        <span class="badge rounded-pill bg-success">Done</span>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold">@item.Title</h5>
+                        <p class="card-text text-muted mb-0">@item.Details</p>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 text-muted small d-flex align-items-center">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        @item.Date.ToString("yyyy-MM-dd HH:mm")
+                    </div>
+
+                    <div class="dropdown position-absolute top-0 end-0 mt-2 me-2">
+                        <a href="#" class="text-muted" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editModal-@item.Id">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </li>
+                            <li>
+                                <form asp-action="Delete" asp-route-id="@item.Id" class="m-0">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Edit Modal for Completed -->
+            <div class="modal fade" id="editModal-@item.Id" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form asp-action="Edit" method="post">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Task</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="Id" value="@item.Id" />
+                                <div class="mb-3">
+                                    <label class="form-label">Title</label>
+                                    <input class="form-control" type="text" name="Title" value="@item.Title" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Details</label>
+                                    <input class="form-control" type="text" name="Details" value="@item.Details" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Date</label>
+                                    <input class="form-control" type="datetime-local" name="Date" value='@item.Date.ToString("yyyy-MM-ddTHH:mm")' />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Priority</label>
+                                    <select name="Priority" class="form-select">
+                                        <option value="0" selected="@(item.Priority == PriorityLevel.Low)">Low</option>
+                                        <option value="1" selected="@(item.Priority == PriorityLevel.Medium)">Medium</option>
+                                        <option value="2" selected="@(item.Priority == PriorityLevel.High)">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="IsDone" value="true" @(item.IsDone ? "checked" : "") />
+                                    <label class="form-check-label">Completed</label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+
+        </div>
+    </div>
+
+
+
+    </div>
+}
+
+<!-- CREATE MODAL -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label asp-for="NewToDo.Title" class="form-label">Title</label>
+                        <input asp-for="NewToDo.Title" class="form-control" />
+                        <span asp-validation-for="NewToDo.Title" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewToDo.Details" class="form-label">Details</label>
+                        <input asp-for="NewToDo.Details" class="form-control" />
+                        <span asp-validation-for="NewToDo.Details" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        @{
+                            var defaultDate = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+                        }
+                        <label asp-for="NewToDo.Date" class="form-label">Date</label>
+                        <input asp-for="NewToDo.Date" type="datetime-local" class="form-control" value="@defaultDate" />
+                        <span asp-validation-for="NewToDo.Date" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewToDo.Priority" class="form-label">Priority</label>
+                        <select asp-for="NewToDo.Priority" class="form-select">
+                            <option value="0">Low</option>
+                            <option value="1">Medium</option>
+                            <option value="2">High</option>
+                        </select>
+                        <span asp-validation-for="NewToDo.Priority" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Create</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

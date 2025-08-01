@@ -1,0 +1,96 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.task-card {
+    position: relative;
+    overflow: hidden;
+}
+    .task-card .status-pill {
+        position: absolute;
+        top: 0.75rem;
+        right: 1rem;
+        z-index: 1;
+    }
+
+    .task-card .options-menu {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        z-index: 1;
+    }
+
+    .task-card .card-body {
+        padding-top: 3rem;
+    }
+
+    .task-card .card-footer {
+        border-top: 1px solid #adb5bd;
+        background-color: #f8f9fa; 
+    }
+
+.card {
+    transition: all 0.2s ease-in-out;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    }
+
+
+.badge {
+    font-size: 0.75rem;
+    position: absolute;
+    right: 1.5rem;
+}
+
+.priority-header-high {
+    background-color: #dc3545;
+    color: white;
+}
+
+.priority-header-medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.priority-header-low {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.priority-high {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.priority-medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.priority-low {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
